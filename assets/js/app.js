@@ -229,9 +229,9 @@ function nuevoPaciente() {
     sexo: '',
     establec: '',
     servicioCond: '',
-    diag1: '', tipo1: '', lab1: '', codigo1: '',
-    diag2: '', tipo2: '', lab2: '', codigo2: '',
-    diag3: '', tipo3: '', lab3: '', codigo3: '',
+    diag1: '', tipo1: '', lab1_1: '', lab1_2: '', lab1_3: '', codigo1: '',
+    diag2: '', tipo2: '', lab2_1: '', lab2_2: '', lab2_3: '', codigo2: '',
+    diag3: '', tipo3: '', lab3_1: '', lab3_2: '', lab3_3: '', codigo3: '',
   };
 }
 
@@ -413,8 +413,9 @@ function renderPacienteCard(p, idx) {
   b18.textContent = '18';
   const labHead = document.createElement('span');
   labHead.className = 'diag-colhead-label';
+  labHead.title = 'Valor Lab: hasta 3 valores por línea de diagnóstico (1º, 2º, 3º)';
   labHead.appendChild(b18);
-  labHead.appendChild(document.createTextNode(' Lab.'));
+  labHead.appendChild(document.createTextNode(' Valor Lab'));
   const b19 = document.createElement('span');
   b19.className = 'item-badge';
   b19.textContent = '19';
@@ -438,14 +439,20 @@ function renderPacienteCard(p, idx) {
     inp.value = p[`diag${n}`];
     inp.addEventListener('input', e => p[`diag${n}`] = e.target.value);
     const seg = fieldRadio(`tipo${n}-${p.id}`, TIPO_DIAG, p[`tipo${n}`], v => { p[`tipo${n}`] = v; renderPacientes(); });
-    const lab = document.createElement('input');
-    lab.type = 'text';
-    lab.className = 'mono diag-lab';
-    lab.placeholder = `Lab${n}`;
-    lab.value = p[`lab${n}`];
-    lab.addEventListener('input', e => p[`lab${n}`] = e.target.value);
+    const labGroup = document.createElement('div');
+    labGroup.className = 'diag-lab-group';
+    [1,2,3].forEach(sub => {
+      const lab = document.createElement('input');
+      lab.type = 'text';
+      lab.className = 'mono diag-lab';
+      lab.placeholder = `${sub}º`;
+      lab.title = `Valor Lab ${sub}º — línea ${n}`;
+      lab.value = p[`lab${n}_${sub}`];
+      lab.addEventListener('input', e => p[`lab${n}_${sub}`] = e.target.value);
+      labGroup.appendChild(lab);
+    });
     const codWrap = crearCampoCodigoCieCpt(p, n, inp);
-    row.append(numSpan, inp, seg, lab, codWrap);
+    row.append(numSpan, inp, seg, labGroup, codWrap);
     diagWrap.appendChild(row);
   });
   grid.appendChild(diagWrap);
@@ -546,9 +553,9 @@ function blockCells(p) {
     tipo1P: `Q${R}`, tipo1D: `R${R}`, tipo1R: `S${R}`,
     tipo2P: `Q${R+1}`, tipo2D: `R${R+1}`, tipo2R: `S${R+1}`,
     tipo3P: `Q${R+3}`, tipo3D: `R${R+3}`, tipo3R: `S${R+3}`,
-    lab1: `T${R}`,   codigo1: `U${R}`,
-    lab2: `T${R+1}`, codigo2: `U${R+1}`,
-    lab3: `T${R+3}`, codigo3: `U${R+3}`,
+    lab1_1: `T${R}`,   lab1_2: `U${R}`,   lab1_3: `V${R}`,   codigo1: `W${R}`,
+    lab2_1: `T${R+1}`, lab2_2: `U${R+1}`, lab2_3: `V${R+1}`, codigo2: `W${R+1}`,
+    lab3_1: `T${R+3}`, lab3_2: `U${R+3}`, lab3_3: `V${R+3}`, codigo3: `W${R+3}`,
   };
 }
 
@@ -603,11 +610,17 @@ async function exportarExcel() {
       if (p.tipo3 === 'P') ok = setCell(ok, c.tipo3P, '(P)', false);
       if (p.tipo3 === 'D') ok = setCell(ok, c.tipo3D, '(D)', false);
       if (p.tipo3 === 'R') ok = setCell(ok, c.tipo3R, '(R)', false);
-      ok = setCell(ok, c.lab1, p.lab1, false);
+      ok = setCell(ok, c.lab1_1, p.lab1_1, false);
+      ok = setCell(ok, c.lab1_2, p.lab1_2, false);
+      ok = setCell(ok, c.lab1_3, p.lab1_3, false);
       ok = setCell(ok, c.codigo1, p.codigo1, false);
-      ok = setCell(ok, c.lab2, p.lab2, false);
+      ok = setCell(ok, c.lab2_1, p.lab2_1, false);
+      ok = setCell(ok, c.lab2_2, p.lab2_2, false);
+      ok = setCell(ok, c.lab2_3, p.lab2_3, false);
       ok = setCell(ok, c.codigo2, p.codigo2, false);
-      ok = setCell(ok, c.lab3, p.lab3, false);
+      ok = setCell(ok, c.lab3_1, p.lab3_1, false);
+      ok = setCell(ok, c.lab3_2, p.lab3_2, false);
+      ok = setCell(ok, c.lab3_3, p.lab3_3, false);
       ok = setCell(ok, c.codigo3, p.codigo3, false);
     });
     zip.file('xl/worksheets/sheet1.xml', ok);
