@@ -37,8 +37,10 @@ const TIPO_DIAG = [
  * predictivo: al escribir, sugiere códigos/descripciones del dataset
  * local y, al final de la lista, ofrece un enlace al buscador oficial
  * de MINSA REUNIS para códigos que no estén en el subconjunto local.
+ * Al elegir una sugerencia, además del código, autocompleta el campo
+ * "Diagnóstico" de la misma fila con la descripción correspondiente.
  */
-function crearCampoCodigoCieCpt(paciente, n){
+function crearCampoCodigoCieCpt(paciente, n, campoDiagnostico){
   const wrap = document.createElement('div');
   wrap.className = 'diag-cod-wrap';
 
@@ -68,6 +70,10 @@ function crearCampoCodigoCieCpt(paciente, n){
   function elegir(item){
     cod.value = item.c;
     paciente[`codigo${n}`] = item.c;
+    if(campoDiagnostico){
+      campoDiagnostico.value = item.d;
+      paciente[`diag${n}`] = item.d;
+    }
     cerrarLista();
   }
 
@@ -391,7 +397,7 @@ function renderPacienteCard(p, idx) {
     lab.placeholder = 'Lab.';
     lab.value = p[`lab${n}`];
     lab.addEventListener('input', e => p[`lab${n}`] = e.target.value);
-    const codWrap = crearCampoCodigoCieCpt(p, n);
+    const codWrap = crearCampoCodigoCieCpt(p, n, inp);
     row.append(numSpan, inp, seg, lab, codWrap);
     diagWrap.appendChild(row);
   });
