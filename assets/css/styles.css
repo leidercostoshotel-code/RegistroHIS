@@ -205,7 +205,7 @@ body{
 /* Diagnosis rows */
 .diag-row{
   display:grid;
-  grid-template-columns: 20px 1fr auto 84px 104px;
+  grid-template-columns: 20px 1fr auto 150px 104px;
   align-items:center;
   gap:8px;
   margin-top:8px;
@@ -232,8 +232,17 @@ body{
   box-shadow: 0 0 0 3px rgba(30,127,114,.14);
 }
 .diag-row .seg{ width:118px; }
-.diag-row .diag-lab,
 .diag-row .diag-cod{ font-size:13px; padding:9px 8px; }
+
+/* Grupo de 3 valores de Lab (1º/2º/3º) por línea de diagnóstico */
+.diag-lab-group{ display:flex; gap:3px; min-width:0; }
+.diag-row .diag-lab{
+  flex:1;
+  min-width:0;
+  font-size:12px;
+  padding:9px 1px;
+  text-align:center;
+}
 
 .diag-colhead{ margin-top:12px; }
 .diag-colhead-label{
@@ -471,7 +480,8 @@ body{
   .field.span-2, .field.span-3{ grid-column: span 2; }
   .exportbar-inner{ flex-direction:column; align-items:stretch; text-align:center; }
   .diag-row{ grid-template-columns: 18px 1fr; }
-  .diag-row .seg{ grid-column: 1 / -1; width:100%; margin-top:6px; }
+  .diag-row .seg,
+  .diag-row .diag-lab-group{ grid-column: 1 / -1; width:100%; margin-top:6px; }
 }
 
 @media (prefers-reduced-motion: reduce){
