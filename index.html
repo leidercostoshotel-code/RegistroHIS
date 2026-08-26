@@ -259,6 +259,72 @@ body{
 }
 
 /* ============================================================
+   Autocompletado CIE-10 / CPT
+   ============================================================ */
+.diag-cod-wrap{ position:relative; }
+.diag-cod-wrap .diag-cod{ width:100%; }
+.ac-list{
+  position:absolute;
+  top:calc(100% + 5px);
+  right:0;
+  z-index:50;
+  min-width:280px;
+  max-width:360px;
+  max-height:260px;
+  overflow-y:auto;
+  margin:0;
+  padding:5px;
+  list-style:none;
+  background:var(--surface);
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  box-shadow: var(--shadow);
+  display:none;
+}
+.ac-list.is-open{ display:block; }
+.ac-item{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  padding:7px 8px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.ac-item:hover,
+.ac-item.is-active{ background: var(--amber-bg); }
+.ac-item .ac-code{
+  flex:0 0 auto;
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:12.5px;
+  color:var(--teal-deep);
+}
+.ac-item .ac-desc{
+  font-size:12.5px;
+  color:var(--ink-soft);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.ac-empty{
+  padding:8px;
+  font-size:12px;
+  color:var(--ink-soft);
+}
+.ac-footer{
+  margin-top:4px;
+  padding:7px 8px 3px;
+  border-top:1px solid var(--line);
+  font-size:11px;
+}
+.ac-footer a{
+  color:var(--teal-deep);
+  font-weight:600;
+  text-decoration:none;
+}
+.ac-footer a:hover{ text-decoration:underline; }
+
+/* ============================================================
    Header panel specific
    ============================================================ */
 .header-grid{
@@ -542,6 +608,252 @@ const TIPO_DIAG = [
   {code:'R', label:'R · Repetido'},
 ];
 
+/* ============================================================
+   Buscador predictivo CIE-10 / CPT
+   Fuente de referencia completa (consulta manual en línea):
+   MINSA · REUNIS — https://www.minsa.gob.pe/reunis/?op=2&niv=15
+   El listado local es un subconjunto curado de los códigos más
+   usados en consulta ambulatoria, para autocompletar sin depender
+   de conexión a internet. Ante un código no listado, usar el
+   enlace "Buscar más en MINSA REUNIS" del propio menú.
+   ============================================================ */
+const CIE10_CPT_URL = 'https://www.minsa.gob.pe/reunis/?op=2&niv=15';
+
+const CIE10_CPT_DATASET = [
+  {c:'A00.9',  d:'Cólera, no especificado'},
+  {c:'A09',    d:'Diarrea y gastroenteritis de presunto origen infeccioso'},
+  {c:'A15.0',  d:'Tuberculosis pulmonar, con confirmación bacteriológica'},
+  {c:'A16.9',  d:'Tuberculosis del aparato respiratorio, no especificada'},
+  {c:'A49.9',  d:'Infección bacteriana, no especificada'},
+  {c:'A90',    d:'Fiebre del dengue [dengue clásico]'},
+  {c:'A91',    d:'Fiebre del dengue hemorrágico'},
+  {c:'B01.9',  d:'Varicela sin complicaciones'},
+  {c:'B02.9',  d:'Herpes zóster sin complicaciones'},
+  {c:'B34.9',  d:'Infección viral, no especificada'},
+  {c:'B35.4',  d:'Tiña del cuerpo'},
+  {c:'B37.9',  d:'Candidiasis, no especificada'},
+  {c:'B82.9',  d:'Parasitosis intestinal, sin otra especificación'},
+  {c:'D50.9',  d:'Anemia por deficiencia de hierro, sin otra especificación'},
+  {c:'E03.9',  d:'Hipotiroidismo, no especificado'},
+  {c:'E04.9',  d:'Bocio no tóxico, no especificado'},
+  {c:'E10.9',  d:'Diabetes mellitus tipo 1, sin complicaciones'},
+  {c:'E11.9',  d:'Diabetes mellitus tipo 2, sin complicaciones'},
+  {c:'E44.0',  d:'Desnutrición proteicocalórica de grado moderado'},
+  {c:'E46',    d:'Desnutrición proteicocalórica, no especificada'},
+  {c:'E66.9',  d:'Obesidad, no especificada'},
+  {c:'E78.5',  d:'Hiperlipidemia, no especificada'},
+  {c:'F10.2',  d:'Trastornos mentales por consumo de alcohol, síndrome de dependencia'},
+  {c:'F32.9',  d:'Episodio depresivo, no especificado'},
+  {c:'F41.1',  d:'Trastorno de ansiedad generalizada'},
+  {c:'F41.9',  d:'Trastorno de ansiedad, no especificado'},
+  {c:'G40.9',  d:'Epilepsia, no especificada'},
+  {c:'G43.9',  d:'Migraña, no especificada'},
+  {c:'G47.0',  d:'Trastornos del inicio y del mantenimiento del sueño (insomnio)'},
+  {c:'H10.9',  d:'Conjuntivitis, no especificada'},
+  {c:'H60.9',  d:'Otitis externa, no especificada'},
+  {c:'H66.9',  d:'Otitis media, no especificada'},
+  {c:'I10',    d:'Hipertensión esencial (primaria)'},
+  {c:'I25.9',  d:'Enfermedad isquémica crónica del corazón, no especificada'},
+  {c:'J00',    d:'Rinofaringitis aguda [resfriado común]'},
+  {c:'J01.9',  d:'Sinusitis aguda, no especificada'},
+  {c:'J02.9',  d:'Faringitis aguda, no especificada'},
+  {c:'J03.9',  d:'Amigdalitis aguda, no especificada'},
+  {c:'J06.9',  d:'Infección aguda de las vías respiratorias superiores, no especificada'},
+  {c:'J11.1',  d:'Influenza con otras manifestaciones respiratorias, virus no identificado'},
+  {c:'J18.9',  d:'Neumonía, no especificada'},
+  {c:'J20.9',  d:'Bronquitis aguda, no especificada'},
+  {c:'J30.4',  d:'Rinitis alérgica, no especificada'},
+  {c:'J44.9',  d:'Enfermedad pulmonar obstructiva crónica, no especificada'},
+  {c:'J45.9',  d:'Asma, no especificada'},
+  {c:'K02.9',  d:'Caries dental, no especificada'},
+  {c:'K04.0',  d:'Pulpitis'},
+  {c:'K05.6',  d:'Enfermedad periodontal, no especificada'},
+  {c:'K21.9',  d:'Enfermedad del reflujo gastroesofágico sin esofagitis'},
+  {c:'K29.7',  d:'Gastritis, no especificada'},
+  {c:'K30',    d:'Dispepsia'},
+  {c:'K35.80', d:'Apendicitis aguda, no especificada'},
+  {c:'K52.9',  d:'Gastroenteritis y colitis no infecciosas, no especificadas'},
+  {c:'K59.0',  d:'Estreñimiento'},
+  {c:'L01.0',  d:'Impétigo'},
+  {c:'L03.9',  d:'Celulitis, no especificada'},
+  {c:'L20.9',  d:'Dermatitis atópica, no especificada'},
+  {c:'L23.9',  d:'Dermatitis alérgica de contacto, de causa no especificada'},
+  {c:'L30.9',  d:'Dermatitis, no especificada'},
+  {c:'M10.9',  d:'Gota, no especificada'},
+  {c:'M25.5',  d:'Dolor articular'},
+  {c:'M54.2',  d:'Cervicalgia'},
+  {c:'M54.5',  d:'Lumbago, no especificado'},
+  {c:'M79.1',  d:'Mialgia'},
+  {c:'N18.9',  d:'Enfermedad renal crónica, no especificada'},
+  {c:'N30.0',  d:'Cistitis aguda'},
+  {c:'N39.0',  d:'Infección de vías urinarias, sitio no especificado'},
+  {c:'N76.0',  d:'Vaginitis aguda'},
+  {c:'R05',    d:'Tos'},
+  {c:'R06.0',  d:'Disnea'},
+  {c:'R10.4',  d:'Otros dolores abdominales y los no especificados'},
+  {c:'R11',    d:'Náusea y vómito'},
+  {c:'R50.9',  d:'Fiebre, no especificada'},
+  {c:'R51',    d:'Cefalea'},
+  {c:'R53',    d:'Malestar y fatiga'},
+  {c:'S00.9',  d:'Traumatismo superficial de la cabeza, parte no especificada'},
+  {c:'S60.9',  d:'Traumatismo superficial de la muñeca y de la mano, parte no especificada'},
+  {c:'S93.4',  d:'Esguince y torcedura del tobillo'},
+  {c:'T14.9',  d:'Traumatismo, no especificado'},
+  {c:'U07.1',  d:'COVID-19, virus identificado'},
+  {c:'Z00.0',  d:'Examen médico general'},
+  {c:'Z00.1',  d:'Examen de rutina de salud del niño'},
+  {c:'Z01.4',  d:'Examen ginecológico general (de rutina)'},
+  {c:'Z23',    d:'Necesidad de inmunización contra enfermedad bacteriana única'},
+  {c:'Z27.9',  d:'Necesidad de inmunización combinada contra enfermedades infecciosas, no especificada'},
+  {c:'Z30.9',  d:'Anticoncepción, no especificada'},
+  {c:'Z34.9',  d:'Supervisión de embarazo normal, no especificada'},
+  {c:'Z35.9',  d:'Supervisión de embarazo de alto riesgo, no especificada'},
+  {c:'Z39.2',  d:'Atención y examen postparto de rutina'},
+  {c:'Z71.1',  d:'Persona que consulta por sí misma con preocupación no justificada de enfermedad'},
+  {c:'Z76.3',  d:'Persona en buena salud que acompaña a un enfermo'},
+  {c:'90471',  d:'CPT · Administración de vacuna (inyección), primera dosis'},
+  {c:'99213',  d:'CPT · Consulta médica ambulatoria, evaluación de nivel intermedio'},
+  {c:'81002',  d:'CPT · Examen de orina, sin microscopía'},
+  {c:'85025',  d:'CPT · Hemograma completo, automatizado'},
+];
+
+function normalizarTexto(s){
+  return (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+function buscarCie10Cpt(query, limite = 8){
+  const q = normalizarTexto(query);
+  if(!q) return [];
+  const porCodigo = [];
+  const porDescripcion = [];
+  for(const item of CIE10_CPT_DATASET){
+    const codigo = normalizarTexto(item.c);
+    if(codigo.startsWith(q)){
+      porCodigo.push(item);
+      continue;
+    }
+    if(normalizarTexto(item.d).includes(q)){
+      porDescripcion.push(item);
+    }
+  }
+  return [...porCodigo, ...porDescripcion].slice(0, limite);
+}
+
+/**
+ * Construye el campo "CIE/CPT" de una fila de diagnóstico con menú
+ * predictivo: al escribir, sugiere códigos/descripciones del dataset
+ * local y, al final de la lista, ofrece un enlace al buscador oficial
+ * de MINSA REUNIS para códigos que no estén en el subconjunto local.
+ */
+function crearCampoCodigoCieCpt(paciente, n){
+  const wrap = document.createElement('div');
+  wrap.className = 'diag-cod-wrap';
+
+  const cod = document.createElement('input');
+  cod.type = 'text';
+  cod.className = 'mono diag-cod';
+  cod.placeholder = 'CIE / CPT';
+  cod.autocomplete = 'off';
+  cod.setAttribute('role', 'combobox');
+  cod.setAttribute('aria-autocomplete', 'list');
+  cod.value = paciente[`codigo${n}`];
+
+  const lista = document.createElement('ul');
+  lista.className = 'ac-list';
+  lista.setAttribute('role', 'listbox');
+
+  let resultados = [];
+  let indiceActivo = -1;
+
+  function cerrarLista(){
+    lista.classList.remove('is-open');
+    lista.innerHTML = '';
+    resultados = [];
+    indiceActivo = -1;
+  }
+
+  function elegir(item){
+    cod.value = item.c;
+    paciente[`codigo${n}`] = item.c;
+    cerrarLista();
+  }
+
+  function pintarLista(){
+    lista.innerHTML = '';
+    if(!resultados.length){
+      cerrarLista();
+      return;
+    }
+    resultados.forEach((item, i) => {
+      const li = document.createElement('li');
+      li.className = 'ac-item' + (i === indiceActivo ? ' is-active' : '');
+      li.setAttribute('role', 'option');
+      const spanCod = document.createElement('span');
+      spanCod.className = 'ac-code';
+      spanCod.textContent = item.c;
+      const spanDesc = document.createElement('span');
+      spanDesc.className = 'ac-desc';
+      spanDesc.textContent = item.d;
+      li.append(spanCod, spanDesc);
+      // mousedown (no click) para elegir antes de que el input pierda foco
+      li.addEventListener('mousedown', e => { e.preventDefault(); elegir(item); });
+      lista.appendChild(li);
+    });
+    const pie = document.createElement('li');
+    pie.className = 'ac-footer';
+    const enlace = document.createElement('a');
+    enlace.href = CIE10_CPT_URL;
+    enlace.target = '_blank';
+    enlace.rel = 'noopener noreferrer';
+    enlace.textContent = 'Buscar más en MINSA REUNIS ↗';
+    enlace.addEventListener('mousedown', e => e.stopPropagation());
+    pie.appendChild(enlace);
+    lista.appendChild(pie);
+    lista.classList.add('is-open');
+  }
+
+  cod.addEventListener('input', e => {
+    const valor = e.target.value;
+    paciente[`codigo${n}`] = valor;
+    resultados = buscarCie10Cpt(valor);
+    indiceActivo = -1;
+    pintarLista();
+  });
+
+  cod.addEventListener('focus', () => {
+    if(cod.value){
+      resultados = buscarCie10Cpt(cod.value);
+      indiceActivo = -1;
+      pintarLista();
+    }
+  });
+
+  cod.addEventListener('keydown', e => {
+    if(!lista.classList.contains('is-open') || !resultados.length) return;
+    if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      indiceActivo = Math.min(indiceActivo + 1, resultados.length - 1);
+      pintarLista();
+    } else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      indiceActivo = Math.max(indiceActivo - 1, 0);
+      pintarLista();
+    } else if(e.key === 'Enter'){
+      if(indiceActivo >= 0){
+        e.preventDefault();
+        elegir(resultados[indiceActivo]);
+      }
+    } else if(e.key === 'Escape'){
+      cerrarLista();
+    }
+  });
+
+  cod.addEventListener('blur', () => { setTimeout(cerrarLista, 120); });
+
+  wrap.append(cod, lista);
+  return wrap;
+}
+
 const today = new Date();
 
 const state = {
@@ -762,6 +1074,7 @@ function renderPacienteCard(p, idx) {
   b19.textContent = '19';
   const codHead = document.createElement('span');
   codHead.className = 'diag-colhead-label';
+  codHead.title = 'Escriba código o descripción para ver sugerencias. Fuente completa: MINSA REUNIS';
   codHead.appendChild(b19);
   codHead.appendChild(document.createTextNode(' CIE/CPT'));
   colHead.append(document.createElement('span'), document.createElement('span'), tipoHead, labHead, codHead);
@@ -785,13 +1098,8 @@ function renderPacienteCard(p, idx) {
     lab.placeholder = 'Lab.';
     lab.value = p[`lab${n}`];
     lab.addEventListener('input', e => p[`lab${n}`] = e.target.value);
-    const cod = document.createElement('input');
-    cod.type = 'text';
-    cod.className = 'mono diag-cod';
-    cod.placeholder = 'CIE / CPT';
-    cod.value = p[`codigo${n}`];
-    cod.addEventListener('input', e => p[`codigo${n}`] = e.target.value);
-    row.append(numSpan, inp, seg, lab, cod);
+    const codWrap = crearCampoCodigoCieCpt(p, n);
+    row.append(numSpan, inp, seg, lab, codWrap);
     diagWrap.appendChild(row);
   });
   grid.appendChild(diagWrap);
