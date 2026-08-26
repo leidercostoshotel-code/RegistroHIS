@@ -4,6 +4,7 @@
    ============================================================ */
 
 const MAX_PACIENTES = 12;
+const MAX_LINEAS_DIAG = 6;
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio',
                'Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -239,10 +240,23 @@ function nuevoPaciente() {
     servicioCond: '',
     fechaNacimiento: '',
     fechaUltimoHb: '',
-    diag1: '', tipo1: '', lab1_1: '', lab1_2: '', lab1_3: '', codigo1: '',
-    diag2: '', tipo2: '', lab2_1: '', lab2_2: '', lab2_3: '', codigo2: '',
-    diag3: '', tipo3: '', lab3_1: '', lab3_2: '', lab3_3: '', codigo3: '',
+    ...camposLineasDiag(),
   };
+}
+
+// diag{n}, tipo{n}, lab{n}_1/2/3 y codigo{n} para cada línea de
+// diagnóstico (1..MAX_LINEAS_DIAG), todos en blanco.
+function camposLineasDiag() {
+  const campos = {};
+  for (let n = 1; n <= MAX_LINEAS_DIAG; n++) {
+    campos[`diag${n}`] = '';
+    campos[`tipo${n}`] = '';
+    campos[`lab${n}_1`] = '';
+    campos[`lab${n}_2`] = '';
+    campos[`lab${n}_3`] = '';
+    campos[`codigo${n}`] = '';
+  }
+  return campos;
 }
 
 /* ---------------- Render ---------------- */
@@ -431,7 +445,7 @@ function renderPacienteCard(p, idx) {
   badge16.className = 'item-badge';
   badge16.textContent = '19';
   diagLabel.appendChild(badge16);
-  diagLabel.appendChild(document.createTextNode('Diagnóstico / motivo de consulta y/o actividad de salud (hasta 3 líneas)'));
+  diagLabel.appendChild(document.createTextNode(`Diagnóstico / motivo de consulta y/o actividad de salud (hasta ${MAX_LINEAS_DIAG} líneas)`));
   diagWrap.appendChild(diagLabel);
 
   const colHead = document.createElement('div');
@@ -462,7 +476,7 @@ function renderPacienteCard(p, idx) {
   colHead.append(document.createElement('span'), document.createElement('span'), tipoHead, labHead, codHead);
   diagWrap.appendChild(colHead);
 
-  [1,2,3].forEach(n => {
+  Array.from({length: MAX_LINEAS_DIAG}, (_, i) => i + 1).forEach(n => {
     const row = document.createElement('div');
     row.className = 'diag-row';
     const numSpan = document.createElement('span');
@@ -577,30 +591,33 @@ function setCell(xml, addr, value, isNumber) {
 }
 
 function blockCells(p) {
-  const bi = 14 + 5 * p; // fila del nombre del paciente (0-indexado)
-  const R = bi + 1;      // fila donde empiezan los datos de la 1ª línea
-  return {
+  // Cada bloque ocupa 1 fila de nombre + MAX_LINEAS_DIAG filas de
+  // datos (una por línea de diagnóstico, ver assets/js/xlsx-template.js).
+  const bi = 14 + (1 + MAX_LINEAS_DIAG) * p; // fila del nombre del paciente
+  const R = bi + 1;                          // 1ª fila de datos
+  const c = {
     nombre: `B${bi}`,
     fecha: `R${bi}`,
     notaFechas: `T${bi}`,
     dia: `B${R}`,
-    dni: `C${R}`, hc: `C${R+1}`, gestantePuerpera: `C${R+3}`,
-    financ: `D${R}`, etnia: `D${R+1}`,
-    distrito: `E${R}`, centroPoblado: `E${R+2}`,
+    dni: `C${R}`, hc: `C${R+2}`, gestantePuerpera: `C${R+4}`,
+    financ: `D${R}`, etnia: `D${R+3}`,
+    distrito: `E${R}`, centroPoblado: `E${R+3}`,
     edad: `I${R}`,
-    sexoM: `K${R}`, sexoF: `K${R+2}`,
+    sexoM: `K${R}`, sexoF: `K${R+3}`,
     perimetroCefalico: `M${R}`, perimetroAbdominal: `M${R+3}`,
-    talla: `O${R}`, peso: `O${R+1}`, hemoglobina: `O${R+3}`,
-    estN: `P${R}`, estC: `P${R+1}`, estR: `P${R+3}`,
-    servN: `Q${R}`, servC: `Q${R+1}`, servR: `Q${R+3}`,
-    diag1: `R${R}`, diag2: `R${R+1}`, diag3: `R${R+3}`,
-    tipo1P: `U${R}`, tipo1D: `V${R}`, tipo1R: `W${R}`,
-    tipo2P: `U${R+1}`, tipo2D: `V${R+1}`, tipo2R: `W${R+1}`,
-    tipo3P: `U${R+3}`, tipo3D: `V${R+3}`, tipo3R: `W${R+3}`,
-    lab1_1: `X${R}`,   lab1_2: `Y${R}`,   lab1_3: `Z${R}`,   codigo1: `AA${R}`,
-    lab2_1: `X${R+1}`, lab2_2: `Y${R+1}`, lab2_3: `Z${R+1}`, codigo2: `AA${R+1}`,
-    lab3_1: `X${R+3}`, lab3_2: `Y${R+3}`, lab3_3: `Z${R+3}`, codigo3: `AA${R+3}`,
+    talla: `O${R}`, peso: `O${R+2}`, hemoglobina: `O${R+4}`,
+    estN: `P${R}`, estC: `P${R+2}`, estR: `P${R+4}`,
+    servN: `Q${R}`, servC: `Q${R+2}`, servR: `Q${R+4}`,
   };
+  for (let n = 1; n <= MAX_LINEAS_DIAG; n++) {
+    const fila = R + (n - 1);
+    c[`diag${n}`] = `R${fila}`;
+    c[`tipo${n}P`] = `U${fila}`; c[`tipo${n}D`] = `V${fila}`; c[`tipo${n}R`] = `W${fila}`;
+    c[`lab${n}_1`] = `X${fila}`; c[`lab${n}_2`] = `Y${fila}`; c[`lab${n}_3`] = `Z${fila}`;
+    c[`codigo${n}`] = `AA${fila}`;
+  }
+  return c;
 }
 
 // Texto de la plantilla oficial para la nota de fechas (fila del
@@ -682,30 +699,16 @@ async function exportarExcel() {
       if (p.servicioCond === 'C') ok = setCell(ok, c.servC, 'X', false);
       if (p.servicioCond === 'R') ok = setCell(ok, c.servR, 'X', false);
 
-      ok = setCell(ok, c.diag1, p.diag1, false);
-      ok = setCell(ok, c.diag2, p.diag2, false);
-      ok = setCell(ok, c.diag3, p.diag3, false);
-      if (p.tipo1 === 'P') ok = setCell(ok, c.tipo1P, 'X', false);
-      if (p.tipo1 === 'D') ok = setCell(ok, c.tipo1D, 'X', false);
-      if (p.tipo1 === 'R') ok = setCell(ok, c.tipo1R, 'X', false);
-      if (p.tipo2 === 'P') ok = setCell(ok, c.tipo2P, 'X', false);
-      if (p.tipo2 === 'D') ok = setCell(ok, c.tipo2D, 'X', false);
-      if (p.tipo2 === 'R') ok = setCell(ok, c.tipo2R, 'X', false);
-      if (p.tipo3 === 'P') ok = setCell(ok, c.tipo3P, 'X', false);
-      if (p.tipo3 === 'D') ok = setCell(ok, c.tipo3D, 'X', false);
-      if (p.tipo3 === 'R') ok = setCell(ok, c.tipo3R, 'X', false);
-      ok = setCell(ok, c.lab1_1, p.lab1_1, false);
-      ok = setCell(ok, c.lab1_2, p.lab1_2, false);
-      ok = setCell(ok, c.lab1_3, p.lab1_3, false);
-      ok = setCell(ok, c.codigo1, p.codigo1, false);
-      ok = setCell(ok, c.lab2_1, p.lab2_1, false);
-      ok = setCell(ok, c.lab2_2, p.lab2_2, false);
-      ok = setCell(ok, c.lab2_3, p.lab2_3, false);
-      ok = setCell(ok, c.codigo2, p.codigo2, false);
-      ok = setCell(ok, c.lab3_1, p.lab3_1, false);
-      ok = setCell(ok, c.lab3_2, p.lab3_2, false);
-      ok = setCell(ok, c.lab3_3, p.lab3_3, false);
-      ok = setCell(ok, c.codigo3, p.codigo3, false);
+      for (let n = 1; n <= MAX_LINEAS_DIAG; n++) {
+        ok = setCell(ok, c[`diag${n}`], p[`diag${n}`], false);
+        if (p[`tipo${n}`] === 'P') ok = setCell(ok, c[`tipo${n}P`], 'X', false);
+        if (p[`tipo${n}`] === 'D') ok = setCell(ok, c[`tipo${n}D`], 'X', false);
+        if (p[`tipo${n}`] === 'R') ok = setCell(ok, c[`tipo${n}R`], 'X', false);
+        ok = setCell(ok, c[`lab${n}_1`], p[`lab${n}_1`], false);
+        ok = setCell(ok, c[`lab${n}_2`], p[`lab${n}_2`], false);
+        ok = setCell(ok, c[`lab${n}_3`], p[`lab${n}_3`], false);
+        ok = setCell(ok, c[`codigo${n}`], p[`codigo${n}`], false);
+      }
     });
     zip.file('xl/worksheets/sheet1.xml', ok);
 
