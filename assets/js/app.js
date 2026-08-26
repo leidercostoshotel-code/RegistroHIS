@@ -223,7 +223,7 @@ function nuevoPaciente() {
     hc: '',
     dni: '',
     financ: '',
-    etnia: '',
+    etnia: '58',
     distrito: '',
     edad: '',
     sexo: '',
