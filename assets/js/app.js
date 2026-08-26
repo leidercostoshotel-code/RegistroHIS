@@ -219,16 +219,26 @@ const state = {
 function nuevoPaciente() {
   return {
     id: crypto.randomUUID(),
+    nombre: '',
     dia: '',
-    hc: '',
     dni: '',
+    hc: '',
+    gestantePuerpera: '',
     financ: '',
     etnia: '58',
     distrito: '',
+    centroPoblado: '',
     edad: '',
     sexo: '',
+    perimetroCefalico: '',
+    perimetroAbdominal: '',
+    talla: '',
+    peso: '',
+    hemoglobina: '',
     establec: '',
     servicioCond: '',
+    fechaNacimiento: '',
+    fechaUltimoHb: '',
     diag1: '', tipo1: '', lab1_1: '', lab1_2: '', lab1_3: '', codigo1: '',
     diag2: '', tipo2: '', lab2_1: '', lab2_2: '', lab2_3: '', codigo2: '',
     diag3: '', tipo3: '', lab3_1: '', lab3_2: '', lab3_3: '', codigo3: '',
@@ -338,7 +348,7 @@ function renderPacientes() {
   contadorEl.textContent = `${state.pacientes.length} / ${MAX_PACIENTES} pacientes`;
   btnAgregar.disabled = state.pacientes.length >= MAX_PACIENTES;
   btnAgregar.title = btnAgregar.disabled
-    ? `Esta plantilla admite hasta ${MAX_PACIENTES} pacientes por hoja "OK".`
+    ? `Esta plantilla admite hasta ${MAX_PACIENTES} pacientes por archivo.`
     : '';
 }
 
@@ -369,24 +379,49 @@ function renderPacienteCard(p, idx) {
   const grid = document.createElement('div');
   grid.className = 'grid';
 
-  grid.appendChild(labeledInput({label:'Día', item:'6', value:p.dia, type:'number', placeholder:'1–31',
+  grid.appendChild(labeledInput({label:'Nombres y apellidos del paciente', value:p.nombre,
+    onInput:v=>p.nombre=v, extraClass:'span-full'}));
+
+  grid.appendChild(labeledInput({label:'Día', item:'7', value:p.dia, type:'number', placeholder:'1–31',
     onInput:v=>p.dia=v, extraClass:'span-1 mono'}));
-  grid.appendChild(labeledInput({label:'H.C. / Ficha Familiar', item:'7', value:p.hc,
-    onInput:v=>p.hc=v, extraClass:'span-2 mono'}));
   grid.appendChild(labeledInput({label:'D.N.I.', item:'8', value:p.dni,
     onInput:v=>p.dni=v, extraClass:'span-2 mono'}));
+  grid.appendChild(labeledInput({label:'Historia clínica', item:'8', value:p.hc,
+    onInput:v=>p.hc=v, extraClass:'span-2 mono'}));
+  grid.appendChild(labeledInput({label:'Gestante / Puérpera', item:'8', value:p.gestantePuerpera,
+    onInput:v=>p.gestantePuerpera=v, extraClass:'span-1'}));
+
   grid.appendChild(labeledSelect({label:'Financiador de salud', item:'9', value:p.financ,
     options: FINANCIADORES, onChange:v=>p.financ=v}));
   grid.appendChild(labeledInput({label:'Pertenencia étnica', item:'10', value:p.etnia,
     onInput:v=>p.etnia=v, extraClass:'span-2'}));
   grid.appendChild(labeledInput({label:'Distrito de procedencia', item:'11', value:p.distrito,
     onInput:v=>p.distrito=v, extraClass:'span-2'}));
-  grid.appendChild(labeledInput({label:'Edad', item:'12', value:p.edad, type:'number',
-    onInput:v=>p.edad=v, extraClass:'span-1 mono'}));
 
-  grid.appendChild(segField('Sexo', '13', [{code:'M',label:'Masculino'},{code:'F',label:'Femenino'}], p.sexo, v=>{p.sexo=v; renderPacientes();}));
-  grid.appendChild(segField('Condición: establecimiento', '14', CONDICION, p.establec, v=>{p.establec=v; renderPacientes();}));
-  grid.appendChild(segField('Condición: servicio', '15', CONDICION, p.servicioCond, v=>{p.servicioCond=v; renderPacientes();}));
+  grid.appendChild(labeledInput({label:'Centro poblado', item:'12', value:p.centroPoblado,
+    onInput:v=>p.centroPoblado=v, extraClass:'span-3'}));
+  grid.appendChild(labeledInput({label:'Edad', item:'13', value:p.edad, type:'number',
+    onInput:v=>p.edad=v, extraClass:'span-1 mono'}));
+  grid.appendChild(segField('Sexo', '14', [{code:'M',label:'Masculino'},{code:'F',label:'Femenino'}], p.sexo, v=>{p.sexo=v; renderPacientes();}));
+
+  grid.appendChild(labeledInput({label:'Perímetro cefálico', item:'15', value:p.perimetroCefalico,
+    onInput:v=>p.perimetroCefalico=v, extraClass:'span-1 mono'}));
+  grid.appendChild(labeledInput({label:'Perímetro abdominal', item:'15', value:p.perimetroAbdominal,
+    onInput:v=>p.perimetroAbdominal=v, extraClass:'span-1 mono'}));
+  grid.appendChild(labeledInput({label:'Talla', item:'16', value:p.talla,
+    onInput:v=>p.talla=v, extraClass:'span-1 mono'}));
+  grid.appendChild(labeledInput({label:'Peso', item:'16', value:p.peso,
+    onInput:v=>p.peso=v, extraClass:'span-1 mono'}));
+  grid.appendChild(labeledInput({label:'Hemoglobina', item:'16', value:p.hemoglobina,
+    onInput:v=>p.hemoglobina=v, extraClass:'span-2 mono'}));
+
+  grid.appendChild(segField('Condición: establecimiento', '17', CONDICION, p.establec, v=>{p.establec=v; renderPacientes();}));
+  grid.appendChild(segField('Condición: servicio', '18', CONDICION, p.servicioCond, v=>{p.servicioCond=v; renderPacientes();}));
+
+  grid.appendChild(labeledInput({label:'(*) Fecha de nacimiento', value:p.fechaNacimiento, placeholder:'dd/mm/aaaa',
+    onInput:v=>p.fechaNacimiento=v, extraClass:'span-3 mono'}));
+  grid.appendChild(labeledInput({label:'Fecha último resultado de Hb', value:p.fechaUltimoHb, placeholder:'dd/mm/aaaa',
+    onInput:v=>p.fechaUltimoHb=v, extraClass:'span-3 mono'}));
 
   const diagWrap = document.createElement('div');
   diagWrap.className = 'field span-full';
@@ -394,7 +429,7 @@ function renderPacienteCard(p, idx) {
   diagLabel.className = 'field-label';
   const badge16 = document.createElement('span');
   badge16.className = 'item-badge';
-  badge16.textContent = '16';
+  badge16.textContent = '19';
   diagLabel.appendChild(badge16);
   diagLabel.appendChild(document.createTextNode('Diagnóstico / motivo de consulta y/o actividad de salud (hasta 3 líneas)'));
   diagWrap.appendChild(diagLabel);
@@ -403,14 +438,14 @@ function renderPacienteCard(p, idx) {
   colHead.className = 'diag-row diag-colhead';
   const b17 = document.createElement('span');
   b17.className = 'item-badge';
-  b17.textContent = '17';
+  b17.textContent = '20';
   const tipoHead = document.createElement('span');
   tipoHead.className = 'diag-colhead-label';
   tipoHead.appendChild(b17);
   tipoHead.appendChild(document.createTextNode(' Tipo'));
   const b18 = document.createElement('span');
   b18.className = 'item-badge';
-  b18.textContent = '18';
+  b18.textContent = '21';
   const labHead = document.createElement('span');
   labHead.className = 'diag-colhead-label';
   labHead.title = 'Valor Lab: hasta 3 valores por línea de diagnóstico (1º, 2º, 3º)';
@@ -418,7 +453,7 @@ function renderPacienteCard(p, idx) {
   labHead.appendChild(document.createTextNode(' Valor Lab'));
   const b19 = document.createElement('span');
   b19.className = 'item-badge';
-  b19.textContent = '19';
+  b19.textContent = '22';
   const codHead = document.createElement('span');
   codHead.className = 'diag-colhead-label';
   codHead.title = 'Escriba código o descripción para ver sugerencias. Fuente completa: MINSA REUNIS';
@@ -542,21 +577,44 @@ function setCell(xml, addr, value, isNumber) {
 }
 
 function blockCells(p) {
-  const R = 15 + 5 * p; // fila inicial del bloque (0-indexado por paciente)
+  const bi = 14 + 5 * p; // fila del nombre del paciente (0-indexado)
+  const R = bi + 1;      // fila donde empiezan los datos de la 1ª línea
   return {
-    dia: `B${R}`, hc: `C${R}`, dni: `C${R+2}`, financ: `D${R}`,
-    etnia: `E${R}`, distrito: `F${R}`, edad: `I${R}`,
-    sexoM: `J${R}`, sexoF: `J${R+2}`,
-    estN: `K${R}`, estC: `K${R+1}`, estR: `K${R+3}`,
-    servN: `L${R}`, servC: `L${R+1}`, servR: `L${R+3}`,
-    diag1: `N${R}`, diag2: `N${R+1}`, diag3: `N${R+3}`,
-    tipo1P: `Q${R}`, tipo1D: `R${R}`, tipo1R: `S${R}`,
-    tipo2P: `Q${R+1}`, tipo2D: `R${R+1}`, tipo2R: `S${R+1}`,
-    tipo3P: `Q${R+3}`, tipo3D: `R${R+3}`, tipo3R: `S${R+3}`,
-    lab1_1: `T${R}`,   lab1_2: `U${R}`,   lab1_3: `V${R}`,   codigo1: `W${R}`,
-    lab2_1: `T${R+1}`, lab2_2: `U${R+1}`, lab2_3: `V${R+1}`, codigo2: `W${R+1}`,
-    lab3_1: `T${R+3}`, lab3_2: `U${R+3}`, lab3_3: `V${R+3}`, codigo3: `W${R+3}`,
+    nombre: `B${bi}`,
+    fecha: `R${bi}`,
+    notaFechas: `T${bi}`,
+    dia: `B${R}`,
+    dni: `C${R}`, hc: `C${R+1}`, gestantePuerpera: `C${R+3}`,
+    financ: `D${R}`, etnia: `D${R+1}`,
+    distrito: `E${R}`, centroPoblado: `E${R+2}`,
+    edad: `I${R}`,
+    sexoM: `K${R}`, sexoF: `K${R+2}`,
+    perimetroCefalico: `M${R}`, perimetroAbdominal: `M${R+3}`,
+    talla: `O${R}`, peso: `O${R+1}`, hemoglobina: `O${R+3}`,
+    estN: `P${R}`, estC: `P${R+1}`, estR: `P${R+3}`,
+    servN: `Q${R}`, servC: `Q${R+1}`, servR: `Q${R+3}`,
+    diag1: `R${R}`, diag2: `R${R+1}`, diag3: `R${R+3}`,
+    tipo1P: `U${R}`, tipo1D: `V${R}`, tipo1R: `W${R}`,
+    tipo2P: `U${R+1}`, tipo2D: `V${R+1}`, tipo2R: `W${R+1}`,
+    tipo3P: `U${R+3}`, tipo3D: `V${R+3}`, tipo3R: `W${R+3}`,
+    lab1_1: `X${R}`,   lab1_2: `Y${R}`,   lab1_3: `Z${R}`,   codigo1: `AA${R}`,
+    lab2_1: `X${R+1}`, lab2_2: `Y${R+1}`, lab2_3: `Z${R+1}`, codigo2: `AA${R+1}`,
+    lab3_1: `X${R+3}`, lab3_2: `Y${R+3}`, lab3_3: `Z${R+3}`, codigo3: `AA${R+3}`,
   };
+}
+
+// Texto de la plantilla oficial para la nota de fechas (fila del
+// nombre de cada paciente), con sus dos placeholders "….../…/…." a
+// reemplazar solo si el usuario ingresó el dato correspondiente.
+const NOTA_FECHAS_PLANTILLA = '  (*) FECHA DE NACIMIENTO: ….../…….../…….        FECHA ULTIMO RESULTADO DE Hb: …../..…/….…';
+const NOTA_FECHAS_PLACEHOLDER_NAC = '….../…….../…….';
+const NOTA_FECHAS_PLACEHOLDER_HB = '…../..…/….…';
+
+function construirNotaFechas(fechaNacimiento, fechaUltimoHb) {
+  let texto = NOTA_FECHAS_PLANTILLA;
+  if (fechaNacimiento) texto = texto.replace(NOTA_FECHAS_PLACEHOLDER_NAC, fechaNacimiento);
+  if (fechaUltimoHb) texto = texto.replace(NOTA_FECHAS_PLACEHOLDER_HB, fechaUltimoHb);
+  return texto;
 }
 
 async function exportarExcel() {
@@ -568,48 +626,74 @@ async function exportarExcel() {
     const bin = Uint8Array.from(atob(TEMPLATE_B64), c => c.charCodeAt(0));
     const zip = await JSZip.loadAsync(bin);
 
-    // ---------- Hoja OK (registro diario, hasta 12 pacientes) ----------
+    // ---------- Hoja LADO (registro diario, hasta 12 pacientes) ----------
     let ok = await zip.file('xl/worksheets/sheet1.xml').async('string');
     const h = state.header;
     ok = setCell(ok, 'B8', h.anio, true);
     ok = setCell(ok, 'C8', h.mes, false);
-    ok = setCell(ok, 'A4', h.nroFormato, false);
-    ok = setCell(ok, 'E8', h.establecimiento, false);
-    ok = setCell(ok, 'L8', h.servicio, false);
-    const responsable = [h.respNombre, h.respDni ? `DNI: ${h.respDni}` : ''].filter(Boolean).join('   ');
-    ok = setCell(ok, 'P8', responsable, false);
-    if (h.turno === 'MAÑANA') ok = setCell(ok, 'S2', '(MAÑANA)', false);
-    if (h.turno === 'TARDE') ok = setCell(ok, 'U2', '(TARDE)', false);
+    ok = setCell(ok, 'D8', h.establecimiento, false);
+    ok = setCell(ok, 'N8', h.servicio, false);
+    const responsable = [h.respNombre, h.respDni ? `DNI: ${h.respDni}` : 'DNI: '].filter(Boolean).join('   ');
+    ok = setCell(ok, 'S8', responsable, false);
 
     state.pacientes.forEach((p, idx) => {
       const c = blockCells(idx);
+      ok = setCell(ok, c.nombre, p.nombre, false);
+
+      // Fecha completa de la atención (calculada desde año/mes del
+      // encabezado + día del paciente), como dd/mm/aaaa.
+      if (p.dia) {
+        const mesNum = MESES.indexOf(h.mes) + 1;
+        if (mesNum > 0) {
+          const dd = String(p.dia).padStart(2, '0');
+          const mm = String(mesNum).padStart(2, '0');
+          ok = setCell(ok, c.fecha, `${dd}/${mm}/${h.anio}`, false);
+        }
+      }
+
+      if (p.fechaNacimiento || p.fechaUltimoHb) {
+        ok = setCell(ok, c.notaFechas, construirNotaFechas(p.fechaNacimiento, p.fechaUltimoHb), false);
+      }
+
       ok = setCell(ok, c.dia, p.dia, true);
-      ok = setCell(ok, c.hc, p.hc, false);
       ok = setCell(ok, c.dni, p.dni, false);
+      ok = setCell(ok, c.hc, p.hc, false);
+      ok = setCell(ok, c.gestantePuerpera, p.gestantePuerpera, false);
       ok = setCell(ok, c.financ, p.financ, false);
       ok = setCell(ok, c.etnia, p.etnia, false);
       ok = setCell(ok, c.distrito, p.distrito, false);
+      ok = setCell(ok, c.centroPoblado, p.centroPoblado, false);
       ok = setCell(ok, c.edad, p.edad, true);
-      if (p.sexo === 'M') ok = setCell(ok, c.sexoM, '(M)', false);
-      if (p.sexo === 'F') ok = setCell(ok, c.sexoF, '(F)', false);
-      if (p.establec === 'N') ok = setCell(ok, c.estN, '(N)', false);
-      if (p.establec === 'C') ok = setCell(ok, c.estC, '(C)', false);
-      if (p.establec === 'R') ok = setCell(ok, c.estR, '(R)', false);
-      if (p.servicioCond === 'N') ok = setCell(ok, c.servN, '(N)', false);
-      if (p.servicioCond === 'C') ok = setCell(ok, c.servC, '(C)', false);
-      if (p.servicioCond === 'R') ok = setCell(ok, c.servR, '(R)', false);
+      ok = setCell(ok, c.perimetroCefalico, p.perimetroCefalico, false);
+      ok = setCell(ok, c.perimetroAbdominal, p.perimetroAbdominal, false);
+      ok = setCell(ok, c.talla, p.talla, false);
+      ok = setCell(ok, c.peso, p.peso, false);
+      ok = setCell(ok, c.hemoglobina, p.hemoglobina, false);
+
+      // Selecciones marcadas con "X" sobre la letra impresa (N/C/R,
+      // P/D/R, M/F) — la plantilla ya trae la letra por defecto, solo
+      // se sobreescribe la celda de la opción elegida.
+      if (p.sexo === 'M') ok = setCell(ok, c.sexoM, 'X', false);
+      if (p.sexo === 'F') ok = setCell(ok, c.sexoF, 'X', false);
+      if (p.establec === 'N') ok = setCell(ok, c.estN, 'X', false);
+      if (p.establec === 'C') ok = setCell(ok, c.estC, 'X', false);
+      if (p.establec === 'R') ok = setCell(ok, c.estR, 'X', false);
+      if (p.servicioCond === 'N') ok = setCell(ok, c.servN, 'X', false);
+      if (p.servicioCond === 'C') ok = setCell(ok, c.servC, 'X', false);
+      if (p.servicioCond === 'R') ok = setCell(ok, c.servR, 'X', false);
+
       ok = setCell(ok, c.diag1, p.diag1, false);
       ok = setCell(ok, c.diag2, p.diag2, false);
       ok = setCell(ok, c.diag3, p.diag3, false);
-      if (p.tipo1 === 'P') ok = setCell(ok, c.tipo1P, '(P)', false);
-      if (p.tipo1 === 'D') ok = setCell(ok, c.tipo1D, '(D)', false);
-      if (p.tipo1 === 'R') ok = setCell(ok, c.tipo1R, '(R)', false);
-      if (p.tipo2 === 'P') ok = setCell(ok, c.tipo2P, '(P)', false);
-      if (p.tipo2 === 'D') ok = setCell(ok, c.tipo2D, '(D)', false);
-      if (p.tipo2 === 'R') ok = setCell(ok, c.tipo2R, '(R)', false);
-      if (p.tipo3 === 'P') ok = setCell(ok, c.tipo3P, '(P)', false);
-      if (p.tipo3 === 'D') ok = setCell(ok, c.tipo3D, '(D)', false);
-      if (p.tipo3 === 'R') ok = setCell(ok, c.tipo3R, '(R)', false);
+      if (p.tipo1 === 'P') ok = setCell(ok, c.tipo1P, 'X', false);
+      if (p.tipo1 === 'D') ok = setCell(ok, c.tipo1D, 'X', false);
+      if (p.tipo1 === 'R') ok = setCell(ok, c.tipo1R, 'X', false);
+      if (p.tipo2 === 'P') ok = setCell(ok, c.tipo2P, 'X', false);
+      if (p.tipo2 === 'D') ok = setCell(ok, c.tipo2D, 'X', false);
+      if (p.tipo2 === 'R') ok = setCell(ok, c.tipo2R, 'X', false);
+      if (p.tipo3 === 'P') ok = setCell(ok, c.tipo3P, 'X', false);
+      if (p.tipo3 === 'D') ok = setCell(ok, c.tipo3D, 'X', false);
+      if (p.tipo3 === 'R') ok = setCell(ok, c.tipo3R, 'X', false);
       ok = setCell(ok, c.lab1_1, p.lab1_1, false);
       ok = setCell(ok, c.lab1_2, p.lab1_2, false);
       ok = setCell(ok, c.lab1_3, p.lab1_3, false);
@@ -624,16 +708,6 @@ async function exportarExcel() {
       ok = setCell(ok, c.codigo3, p.codigo3, false);
     });
     zip.file('xl/worksheets/sheet1.xml', ok);
-
-    // ---------- Hoja LADO (encabezado, para mantener ambas hojas coherentes) ----------
-    let lado = await zip.file('xl/worksheets/sheet2.xml').async('string');
-    lado = setCell(lado, 'B8', h.anio, true);
-    lado = setCell(lado, 'C8', h.mes, false);
-    if (h.establecimiento) lado = setCell(lado, 'D8', h.establecimiento, false);
-    if (h.servicio) lado = setCell(lado, 'N8', h.servicio, false);
-    if (h.respNombre) lado = setCell(lado, 'S8', `${h.respNombre}   DNI:`, false);
-    if (h.respDni) lado = setCell(lado, 'T8', h.respDni, false);
-    zip.file('xl/worksheets/sheet2.xml', lado);
 
     const blob = await zip.generateAsync({ type: 'blob',
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

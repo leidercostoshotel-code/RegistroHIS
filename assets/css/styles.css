@@ -125,6 +125,7 @@ body{
   flex-direction:column;
   gap:6px;
   grid-column: span 2;
+  min-width:0;
 }
 .field.span-1{ grid-column: span 1; }
 .field.span-2{ grid-column: span 2; }
@@ -140,6 +141,7 @@ body{
   color:var(--ink-soft);
   text-transform:uppercase;
   letter-spacing:.03em;
+  min-width:0;
 }
 
 .item-badge{
@@ -168,6 +170,7 @@ body{
   color:var(--ink);
   background:#FCFDFC;
   font-family:inherit;
+  min-width:0;
   transition: border-color .15s ease, background .15s ease;
 }
 .field input:focus,
@@ -481,7 +484,8 @@ body{
   .exportbar-inner{ flex-direction:column; align-items:stretch; text-align:center; }
   .diag-row{ grid-template-columns: 18px 1fr; }
   .diag-row .seg,
-  .diag-row .diag-lab-group{ grid-column: 1 / -1; width:100%; margin-top:6px; }
+  .diag-row .diag-lab-group,
+  .diag-row .diag-cod-wrap{ grid-column: 1 / -1; width:100%; margin-top:6px; }
 }
 
 @media (prefers-reduced-motion: reduce){
