@@ -441,7 +441,7 @@ function renderPacienteCard(p, idx) {
     const lab = document.createElement('input');
     lab.type = 'text';
     lab.className = 'mono diag-lab';
-    lab.placeholder = 'Lab.';
+    lab.placeholder = `Lab${n}`;
     lab.value = p[`lab${n}`];
     lab.addEventListener('input', e => p[`lab${n}`] = e.target.value);
     const codWrap = crearCampoCodigoCieCpt(p, n, inp);
