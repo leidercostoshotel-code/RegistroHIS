@@ -127,6 +127,15 @@ function crearCampoCodigoCieCpt(paciente, n, campoDiagnostico){
     resultados = buscarCie10Cpt(valor);
     indiceActivo = -1;
     pintarLista();
+    if(!valor.trim()){
+      // Código borrado por completo: limpia también el diagnóstico
+      // autocompletado, para que no quede una descripción huérfana.
+      if(campoDiagnostico){
+        campoDiagnostico.value = '';
+        paciente[`diag${n}`] = '';
+      }
+      return;
+    }
     // Coincidencia exacta mientras se escribe: completa el diagnóstico
     // sin esperar a que el usuario elija de la lista.
     const exacto = coincidenciaExacta(valor);
