@@ -37,7 +37,8 @@ const TIPO_DIAG = [
  * predictivo: al escribir, sugiere códigos/descripciones del dataset
  * local y, al final de la lista, ofrece un enlace al buscador oficial
  * de MINSA REUNIS para códigos que no estén en el subconjunto local.
- * Al elegir una sugerencia, además del código, autocompleta el campo
+ * Al elegir una sugerencia (clic o Enter), o al escribir un código que
+ * coincide exactamente con uno del dataset, autocompleta el campo
  * "Diagnóstico" de la misma fila con la descripción correspondiente.
  */
 function crearCampoCodigoCieCpt(paciente, n, campoDiagnostico){
@@ -75,6 +76,15 @@ function crearCampoCodigoCieCpt(paciente, n, campoDiagnostico){
       paciente[`diag${n}`] = item.d;
     }
     cerrarLista();
+  }
+
+  // Busca en el dataset un código cuya escritura sea idéntica al valor
+  // dado (ignorando mayúsculas/acentos), para autocompletar sin obligar
+  // a elegir de la lista.
+  function coincidenciaExacta(valor){
+    const v = normalizarTexto(valor);
+    if(!v) return null;
+    return CIE10_CPT_DATASET.find(item => normalizarTexto(item.c) === v) || null;
   }
 
   function pintarLista(){
@@ -117,6 +127,13 @@ function crearCampoCodigoCieCpt(paciente, n, campoDiagnostico){
     resultados = buscarCie10Cpt(valor);
     indiceActivo = -1;
     pintarLista();
+    // Coincidencia exacta mientras se escribe: completa el diagnóstico
+    // sin esperar a que el usuario elija de la lista.
+    const exacto = coincidenciaExacta(valor);
+    if(exacto && campoDiagnostico){
+      campoDiagnostico.value = exacto.d;
+      paciente[`diag${n}`] = exacto.d;
+    }
   });
 
   cod.addEventListener('focus', () => {
@@ -128,6 +145,21 @@ function crearCampoCodigoCieCpt(paciente, n, campoDiagnostico){
   });
 
   cod.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      if(lista.classList.contains('is-open') && indiceActivo >= 0 && resultados[indiceActivo]){
+        e.preventDefault();
+        elegir(resultados[indiceActivo]);
+        return;
+      }
+      // Enter sin sugerencia resaltada: si lo escrito coincide exacto
+      // con un código, igual autocompleta el diagnóstico.
+      const exacto = coincidenciaExacta(cod.value);
+      if(exacto){
+        e.preventDefault();
+        elegir(exacto);
+      }
+      return;
+    }
     if(!lista.classList.contains('is-open') || !resultados.length) return;
     if(e.key === 'ArrowDown'){
       e.preventDefault();
@@ -137,17 +169,23 @@ function crearCampoCodigoCieCpt(paciente, n, campoDiagnostico){
       e.preventDefault();
       indiceActivo = Math.max(indiceActivo - 1, 0);
       pintarLista();
-    } else if(e.key === 'Enter'){
-      if(indiceActivo >= 0){
-        e.preventDefault();
-        elegir(resultados[indiceActivo]);
-      }
     } else if(e.key === 'Escape'){
       cerrarLista();
     }
   });
 
-  cod.addEventListener('blur', () => { setTimeout(cerrarLista, 120); });
+  cod.addEventListener('blur', () => {
+    setTimeout(() => {
+      // Respaldo final: si al salir del campo el valor es un código
+      // exacto (ej. pegado con el portapapeles), completa el diagnóstico.
+      const exacto = coincidenciaExacta(cod.value);
+      if(exacto && campoDiagnostico && !campoDiagnostico.value){
+        campoDiagnostico.value = exacto.d;
+        paciente[`diag${n}`] = exacto.d;
+      }
+      cerrarLista();
+    }, 120);
+  });
 
   wrap.append(cod, lista);
   return wrap;
